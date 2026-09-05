@@ -1,0 +1,6 @@
+{
+  "name": "GolpoX - Premium Storytelling Platform",
+  "description": "GolpoX is a modern Bangla & multilingual storytelling ecosystem featuring Wattpad and Webnovel-style storytelling, rich reading experience, creator studio, and SaaS admin dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
