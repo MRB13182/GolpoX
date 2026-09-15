@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { BRAND_LOGO, BRAND_LOGO_STORAGE_PATH } from '../../config/branding';
 
 interface LogoProps {
   variant?: 'full' | 'icon' | 'glass' | 'image-only';
@@ -20,14 +21,12 @@ export const Logo: React.FC<LogoProps> = ({
   dark = false,
   priority = true,
 }) => {
-  let activeUrl = '/assets/branding/golpox-main-logo';
-  let isCustom = false;
+  let activeUrl = BRAND_LOGO;
 
   try {
     const app = useApp();
-    if (app && app.logoBranding) {
-      activeUrl = app.logoBranding.url || activeUrl;
-      isCustom = Boolean(app.logoBranding.isCustom);
+    if (app?.logoBranding?.url) {
+      activeUrl = app.logoBranding.url;
     }
   } catch {
     // Fallback if rendered outside AppProvider
@@ -44,10 +43,10 @@ export const Logo: React.FC<LogoProps> = ({
   };
 
   const imageHeights = {
-    sm: 'h-8 max-w-[140px]',
+    sm: 'h-8 max-w-[150px]',
     md: 'h-9 sm:h-11 max-w-[180px] sm:max-w-[220px]',
-    lg: 'h-14 max-w-[260px]',
-    xl: 'h-18 sm:h-20 max-w-[320px]',
+    lg: 'h-12 sm:h-14 max-w-[260px]',
+    xl: 'h-16 sm:h-20 max-w-[320px]',
   };
 
   const textSizes = {
@@ -64,7 +63,7 @@ export const Logo: React.FC<LogoProps> = ({
     xl: 'text-sm',
   };
 
-  // Fallback vector icon motif
+  // Fallback vector icon motif if image cannot load
   const renderFallbackIcon = () => (
     <div
       className={`relative flex items-center justify-center shrink-0 shadow-lg shadow-purple-600/25 transition-transform duration-300 group-hover:scale-105 overflow-hidden ${
@@ -74,12 +73,6 @@ export const Logo: React.FC<LogoProps> = ({
           ? 'bg-gradient-to-br from-purple-500/90 via-purple-600/95 to-indigo-800/95 backdrop-blur-xl border border-white/40 shadow-purple-900/20'
           : 'bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-800 border border-white/20'
       }`}
-      style={{
-        boxShadow:
-          variant === 'glass'
-            ? '0 8px 32px 0 rgba(124, 58, 237, 0.35), inset 0 2px 4px 0 rgba(255, 255, 255, 0.4)'
-            : undefined,
-      }}
     >
       <div className="absolute inset-0 bg-gradient-to-b from-white/35 via-transparent to-transparent opacity-70 pointer-events-none" />
       <svg
@@ -99,20 +92,20 @@ export const Logo: React.FC<LogoProps> = ({
     </div>
   );
 
-  // If a custom logo image has been uploaded (or image-only requested)
-  if (isCustom && !imageError) {
+  // Master logo image display linked to BRAND_LOGO (public/logos/golpox-logo.png)
+  if (!imageError) {
     if (variant === 'icon') {
       return (
         <div
           onClick={onClick}
           className={`inline-flex items-center justify-center cursor-pointer select-none group ${className}`}
           data-logo-id="GOLPOX_MAIN_LOGO"
-          data-storage-path="assets/branding/golpox-main-logo"
+          data-storage-path={BRAND_LOGO_STORAGE_PATH}
         >
-          <div className={`${iconSizes[size]} overflow-hidden rounded-2xl flex items-center justify-center bg-white/10 p-1 border border-white/20 shadow-md`}>
+          <div className={`${iconSizes[size]} overflow-hidden rounded-2xl flex items-center justify-center bg-white/10 p-1 border border-white/20 shadow-xs`}>
             <img
               src={activeUrl}
-              alt="GolpoX Main Logo"
+              alt="GolpoX Icon"
               className="w-full h-full object-contain filter drop-shadow-xs transition-transform duration-200 group-hover:scale-105"
               loading={priority ? 'eager' : 'lazy'}
               decoding="async"
@@ -123,17 +116,18 @@ export const Logo: React.FC<LogoProps> = ({
       );
     }
 
+    // Default 'full' or 'image-only' or 'glass'
     return (
       <div
         onClick={onClick}
         className={`inline-flex items-center cursor-pointer select-none group ${className}`}
         data-logo-id="GOLPOX_MAIN_LOGO"
-        data-storage-path="assets/branding/golpox-main-logo"
+        data-storage-path={BRAND_LOGO_STORAGE_PATH}
       >
         <img
           src={activeUrl}
-          alt="GolpoX Main Logo"
-          className={`${imageHeights[size]} object-contain filter drop-shadow-xs transition-transform duration-200 group-hover:scale-105`}
+          alt="GolpoX Logo"
+          className={`${imageHeights[size]} w-auto object-contain filter drop-shadow-xs transition-transform duration-200 group-hover:scale-[1.02]`}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
           onError={() => setImageError(true)}
@@ -142,26 +136,13 @@ export const Logo: React.FC<LogoProps> = ({
     );
   }
 
-  // Default Vector GolpoX Logo layout
-  if (variant === 'icon' || (variant === 'glass' && size === 'xl')) {
-    return (
-      <div
-        onClick={onClick}
-        className={`inline-flex items-center cursor-pointer select-none group ${className}`}
-        data-logo-id="GOLPOX_MAIN_LOGO"
-        data-storage-path="assets/branding/golpox-main-logo"
-      >
-        {renderFallbackIcon()}
-      </div>
-    );
-  }
-
+  // Graceful fallback if image fails to render
   return (
     <div
       onClick={onClick}
       className={`inline-flex items-center space-x-2.5 sm:space-x-3 cursor-pointer select-none group ${className}`}
       data-logo-id="GOLPOX_MAIN_LOGO"
-      data-storage-path="assets/branding/golpox-main-logo"
+      data-storage-path={BRAND_LOGO_STORAGE_PATH}
     >
       {renderFallbackIcon()}
 

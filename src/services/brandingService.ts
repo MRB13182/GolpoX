@@ -1,26 +1,27 @@
 import { LogoBranding } from '../types';
+import { BRAND_LOGO, BRAND_LOGO_STORAGE_PATH, SUPPORTED_LOGO_FORMATS } from '../config/branding';
 
 export const GOLPOX_LOGO_SOURCE_ID = 'GOLPOX_MAIN_LOGO' as const;
-export const GOLPOX_LOGO_STORAGE_PATH = 'assets/branding/golpox-main-logo' as const;
-export const GOLPOX_DEFAULT_LOGO_URL = '/assets/branding/golpox-main-logo';
+export const GOLPOX_LOGO_STORAGE_PATH = BRAND_LOGO_STORAGE_PATH;
+export const GOLPOX_DEFAULT_LOGO_URL = BRAND_LOGO;
 
-const LOCAL_STORAGE_KEY = 'golpox_branding_main_logo_v1';
+const LOCAL_STORAGE_KEY = 'golpox_branding_main_logo_v2';
 
 export const DEFAULT_LOGO_BRANDING: LogoBranding = {
   id: GOLPOX_LOGO_SOURCE_ID,
-  storagePath: GOLPOX_LOGO_STORAGE_PATH,
-  url: GOLPOX_DEFAULT_LOGO_URL,
-  fileName: 'golpox-main-logo.svg',
-  fileType: 'image/svg+xml',
-  format: 'SVG',
-  fileSizeBytes: 1613,
-  width: 280,
-  height: 80,
+  storagePath: BRAND_LOGO_STORAGE_PATH,
+  url: BRAND_LOGO,
+  fileName: 'golpox-logo.png',
+  fileType: 'image/png',
+  format: 'PNG',
+  fileSizeBytes: 14336,
+  width: 560,
+  height: 160,
   lastUpdated: new Date().toISOString(),
   isCustom: false,
 };
 
-export const SUPPORTED_LOGO_FORMATS = ['PNG', 'SVG', 'WEBP'] as const;
+export { SUPPORTED_LOGO_FORMATS };
 export const SUPPORTED_MIME_TYPES = [
   'image/png',
   'image/svg+xml',
@@ -28,7 +29,7 @@ export const SUPPORTED_MIME_TYPES = [
 ];
 
 /**
- * Retrieves the currently saved branding logo or defaults to the single source logo.
+ * Retrieves the currently saved branding logo or defaults to the master logo file.
  */
 export const getStoredLogoBranding = (): LogoBranding => {
   try {
@@ -58,7 +59,7 @@ export const saveLogoBranding = (branding: LogoBranding): void => {
 };
 
 /**
- * Resets logo to default single source file.
+ * Resets logo to default master single source file.
  */
 export const resetLogoBranding = (): LogoBranding => {
   try {
@@ -75,6 +76,7 @@ export const resetLogoBranding = (): LogoBranding => {
 
 /**
  * Reads and validates an uploaded logo file (PNG, SVG, WEBP).
+ * Overwrites public/logos/golpox-logo.png on disk and instantly refreshes the application.
  */
 export const processLogoUpload = async (file: File): Promise<LogoBranding> => {
   const extension = file.name.split('.').pop()?.toLowerCase() || '';
@@ -102,30 +104,70 @@ export const processLogoUpload = async (file: File): Promise<LogoBranding> => {
   }
 
   // Read file as Data URL
-  const dataUrl = await new Promise<string>((resolve, reject) => {
+  const originalDataUrl = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as string);
     reader.onerror = () => reject(new Error('Failed to read image file.'));
     reader.readAsDataURL(file);
   });
 
-  // Calculate natural image dimensions
-  const dimensions = await new Promise<{ width: number; height: number }>((resolve) => {
+  // Calculate natural image dimensions and generate normalized PNG version
+  const { dimensions, pngDataUrl } = await new Promise<{
+    dimensions: { width: number; height: number };
+    pngDataUrl: string;
+  }>((resolve) => {
     const img = new Image();
     img.onload = () => {
-      resolve({ width: img.naturalWidth || 280, height: img.naturalHeight || 80 });
+      const width = img.naturalWidth || 560;
+      const height = img.naturalHeight || 160;
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.clearRect(0, 0, width, height);
+          ctx.drawImage(img, 0, 0);
+          resolve({
+            dimensions: { width, height },
+            pngDataUrl: canvas.toDataURL('image/png'),
+          });
+          return;
+        }
+      } catch {
+        // Fallback to original
+      }
+      resolve({ dimensions: { width, height }, pngDataUrl: originalDataUrl });
     };
     img.onerror = () => {
-      resolve({ width: 280, height: 80 });
+      resolve({ dimensions: { width: 560, height: 160 }, pngDataUrl: originalDataUrl });
     };
-    img.src = dataUrl;
+    img.src = originalDataUrl;
   });
+
+  // Overwrite public/logos/golpox-logo.png on server filesystem
+  try {
+    await fetch('/api/branding/upload-logo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        base64Data: pngDataUrl,
+        format,
+        originalName: file.name,
+      }),
+    });
+  } catch (serverErr) {
+    console.warn('[Branding] Server overwrite endpoint notice:', serverErr);
+  }
+
+  const timestamp = Date.now();
+  const displayUrl = `${BRAND_LOGO}?v=${timestamp}`;
 
   const newBranding: LogoBranding = {
     id: GOLPOX_LOGO_SOURCE_ID,
-    storagePath: GOLPOX_LOGO_STORAGE_PATH,
-    url: dataUrl,
-    fileName: file.name,
+    storagePath: BRAND_LOGO_STORAGE_PATH,
+    url: displayUrl,
+    fileName: 'golpox-logo.png',
     fileType: mimeType,
     format,
     fileSizeBytes: file.size,
@@ -136,6 +178,7 @@ export const processLogoUpload = async (file: File): Promise<LogoBranding> => {
   };
 
   saveLogoBranding(newBranding);
+  syncHeadBrandingMetadata(displayUrl);
   return newBranding;
 };
 

@@ -21,6 +21,7 @@ import {
 import { useApp } from '../../context/AppContext';
 import { Story, Chapter } from '../../types';
 import { Logo } from '../common/Logo';
+import { BRAND_LOGO } from '../../config/branding';
 
 export const AuthorDashboard: React.FC = () => {
   const { 

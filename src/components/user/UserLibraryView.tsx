@@ -14,6 +14,8 @@ import {
   Feather
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { BRAND_LOGO } from '../../config/branding';
+import { Logo } from '../common/Logo';
 
 export const UserLibraryView: React.FC = () => {
   const { 
@@ -71,6 +73,24 @@ export const UserLibraryView: React.FC = () => {
     <div className="min-h-screen bg-slate-50/60 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
+        {/* User Dashboard Logo Bar */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Logo
+              variant="full"
+              size="sm"
+              onClick={() => setCurrentPage('home')}
+              className="cursor-pointer"
+            />
+            <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-bold">
+              <span>Reader Hub</span>
+            </div>
+          </div>
+          <span className="text-xs text-slate-400 font-mono hidden sm:inline">
+            Logo: {BRAND_LOGO}
+          </span>
+        </div>
+
         {/* User Header Profile Card */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center space-x-4">

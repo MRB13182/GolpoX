@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Send, Facebook, Instagram, Twitter, Youtube, ArrowUp } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { Logo } from '../common/Logo';
+import { BRAND_LOGO } from '../../config/branding';
 
 export const Footer: React.FC = () => {
   const { setCurrentPage, setSelectedGenreId, addToast } = useApp();

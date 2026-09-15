@@ -19,11 +19,13 @@ import {
   Compass, 
   Info,
   ExternalLink,
-  Lock
+  Lock,
+  UserCheck
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { Logo } from '../common/Logo';
-import { GOLPOX_LOGO_SOURCE_ID, GOLPOX_LOGO_STORAGE_PATH } from '../../services/brandingService';
+import { BRAND_LOGO, BRAND_LOGO_STORAGE_PATH, SUPPORTED_LOGO_FORMATS } from '../../config/branding';
+import { GOLPOX_LOGO_SOURCE_ID } from '../../services/brandingService';
 
 export const LogoUploadManager: React.FC = () => {
   const { logoBranding, uploadLogo, deleteLogo, addToast } = useApp();
@@ -85,7 +87,7 @@ export const LogoUploadManager: React.FC = () => {
     try {
       const result = await uploadLogo(file);
       if (result.success) {
-        // Success notification is handled by uploadLogo
+        // Success notification handled in uploadLogo
       }
     } finally {
       setIsProcessing(false);
@@ -97,17 +99,17 @@ export const LogoUploadManager: React.FC = () => {
   };
 
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to reset GOLPOX_MAIN_LOGO to default? This will restore the official branding across the platform.')) {
+    if (window.confirm('Are you sure you want to reset to the default master logo (public/logos/golpox-logo.png)?')) {
       deleteLogo();
     }
   };
 
-  // Copyable paths
-  const storagePathString = GOLPOX_LOGO_STORAGE_PATH;
-  const webRelativePath = `/${GOLPOX_LOGO_STORAGE_PATH}`;
+  // Master paths
+  const storagePathString = BRAND_LOGO_STORAGE_PATH; // "public/logos/golpox-logo.png"
+  const webRelativePath = BRAND_LOGO; // "/logos/golpox-logo.png"
   const absoluteUrl = typeof window !== 'undefined' 
-    ? `${window.location.origin}/${GOLPOX_LOGO_STORAGE_PATH}` 
-    : `https://golpox.com/${GOLPOX_LOGO_STORAGE_PATH}`;
+    ? `${window.location.origin}${BRAND_LOGO}` 
+    : `https://golpox.com${BRAND_LOGO}`;
 
   return (
     <div className="space-y-8 text-left">
@@ -125,20 +127,20 @@ export const LogoUploadManager: React.FC = () => {
       <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
-            {/* Menu Path Requirement: Admin -> Branding -> Main Logo */}
+            {/* Menu Path: Super Admin -> Website Settings -> Branding */}
             <div className="inline-flex items-center space-x-2 text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
-              <span className="text-slate-600">Admin</span>
+              <span className="text-slate-600">Super Admin</span>
               <span>→</span>
-              <span className="text-purple-600">Branding</span>
+              <span className="text-slate-600">Website Settings</span>
               <span>→</span>
-              <span className="text-purple-900 font-extrabold">Main Logo</span>
+              <span className="text-purple-700 font-extrabold">Branding</span>
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight pt-1">
               Logo Upload Manager
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 font-medium">
-              Centralized single-source logo management system for GolpoX. Uploading automatically propagates to all 13 website locations.
+              Centralized master logo system for GolpoX. Uploading overwrites the master file and instantly refreshes all 13 website locations.
             </p>
           </div>
 
@@ -169,49 +171,30 @@ export const LogoUploadManager: React.FC = () => {
               onClick={handleDelete}
               disabled={isProcessing || !logoBranding.isCustom}
               className="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-              title={!logoBranding.isCustom ? 'Currently using default logo' : 'Reset to default logo'}
+              title={!logoBranding.isCustom ? 'Currently using default master logo' : 'Reset to default logo'}
             >
               <Trash2 className="w-4 h-4" />
-              <span>Delete Logo</span>
+              <span>Reset to Default</span>
             </button>
           </div>
         </div>
 
-        {/* Exact Display Requirement: Logo ID & Storage Path */}
+        {/* Current Logo & Master Config Card */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
           
           <div className="bg-purple-50/70 border border-purple-200/80 rounded-2xl p-3.5 space-y-1">
             <div className="flex items-center justify-between text-slate-500 text-[11px] font-bold">
-              <span>Logo ID</span>
-              <Lock className="w-3 h-3 text-purple-600" />
+              <span>Current Master Logo</span>
+              <FileCode className="w-3 h-3 text-purple-600" />
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-black text-purple-950 font-mono tracking-tight">
-                Logo ID: GOLPOX_MAIN_LOGO
+              <span className="text-xs font-black text-purple-950 font-mono tracking-tight">
+                Current Logo: {storagePathString}
               </span>
               <button
-                onClick={() => handleCopy(GOLPOX_LOGO_SOURCE_ID, 'logoId', 'Logo ID')}
+                onClick={() => handleCopy(storagePathString, 'storagePath', 'Current Logo')}
                 className="p-1 rounded-lg hover:bg-purple-200/60 text-purple-700 transition-colors cursor-pointer"
-                title="Copy Logo ID"
-              >
-                {copiedKey === 'logoId' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-1">
-            <div className="flex items-center justify-between text-slate-500 text-[11px] font-bold">
-              <span>Storage Location</span>
-              <FileCode className="w-3 h-3 text-slate-400" />
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-800 font-mono truncate mr-2">
-                Storage: {storagePathString}
-              </span>
-              <button
-                onClick={() => handleCopy(storagePathString, 'storagePath', 'Storage Path')}
-                className="p-1 rounded-lg hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer shrink-0"
-                title="Copy Storage Path"
+                title="Copy Logo Path"
               >
                 {copiedKey === 'storagePath' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
               </button>
@@ -220,13 +203,32 @@ export const LogoUploadManager: React.FC = () => {
 
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-1">
             <div className="flex items-center justify-between text-slate-500 text-[11px] font-bold">
-              <span>File Format & Size</span>
+              <span>Web Path (BRAND_LOGO)</span>
+              <Globe className="w-3 h-3 text-slate-400" />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-800 font-mono truncate mr-2">
+                {webRelativePath}
+              </span>
+              <button
+                onClick={() => handleCopy(webRelativePath, 'webPath', 'Web Relative Path')}
+                className="p-1 rounded-lg hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer shrink-0"
+                title="Copy Web Path"
+              >
+                {copiedKey === 'webPath' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-1">
+            <div className="flex items-center justify-between text-slate-500 text-[11px] font-bold">
+              <span>Supported Formats</span>
               <span className="px-1.5 py-0.5 rounded-md bg-purple-100 text-purple-700 text-[10px] font-extrabold">
-                {logoBranding.format}
+                {SUPPORTED_LOGO_FORMATS.join(', ')}
               </span>
             </div>
             <div className="text-xs font-bold text-slate-800">
-              {(logoBranding.fileSizeBytes / 1024).toFixed(1)} KB • {logoBranding.width || 280}×{logoBranding.height || 80} px
+              Format: {logoBranding.format} • {(logoBranding.fileSizeBytes / 1024).toFixed(1)} KB
             </div>
           </div>
 
@@ -581,12 +583,27 @@ export const LogoUploadManager: React.FC = () => {
                 <p className="text-[10px] text-slate-500 font-mono">Auth modal author sign up</p>
               </div>
 
-              {/* 7. Dashboard Logo */}
+              {/* 7. User Dashboard Logo */}
+              <div className="border border-slate-200 rounded-2xl p-4 bg-slate-50/50 space-y-2">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+                  <span className="flex items-center space-x-1.5">
+                    <UserCheck className="w-3.5 h-3.5 text-purple-600" />
+                    <span>7. User Dashboard Logo</span>
+                  </span>
+                  <span className="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Active</span>
+                </div>
+                <div className="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-center">
+                  <Logo variant="full" size="sm" />
+                </div>
+                <p className="text-[10px] text-slate-500 font-mono">Reader hub & profile header</p>
+              </div>
+
+              {/* 8. Author Dashboard Logo */}
               <div className="border border-slate-200 rounded-2xl p-4 bg-slate-50/50 space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold text-slate-700">
                   <span className="flex items-center space-x-1.5">
                     <Monitor className="w-3.5 h-3.5 text-purple-600" />
-                    <span>7. Dashboard Logo</span>
+                    <span>8. Author Dashboard Logo</span>
                   </span>
                   <span className="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Active</span>
                 </div>
@@ -596,27 +613,27 @@ export const LogoUploadManager: React.FC = () => {
                 <p className="text-[10px] text-slate-500 font-mono">Author creator studio header</p>
               </div>
 
-              {/* 8. Admin Panel Logo */}
+              {/* 9. Admin Dashboard Logo */}
               <div className="border border-slate-200 rounded-2xl p-4 bg-slate-50/50 space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold text-slate-700">
                   <span className="flex items-center space-x-1.5">
                     <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
-                    <span>8. Admin Panel Logo</span>
+                    <span>9. Admin Dashboard Logo</span>
                   </span>
                   <span className="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Active</span>
                 </div>
                 <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 flex items-center justify-center">
                   <Logo variant="full" size="sm" dark={true} />
                 </div>
-                <p className="text-[10px] text-slate-500 font-mono">Admin command center</p>
+                <p className="text-[10px] text-slate-500 font-mono">Super admin command center</p>
               </div>
 
-              {/* 9. Browser Favicon */}
+              {/* 10. Browser Favicon */}
               <div className="border border-slate-200 rounded-2xl p-4 bg-slate-50/50 space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold text-slate-700">
                   <span className="flex items-center space-x-1.5">
                     <Globe className="w-3.5 h-3.5 text-purple-600" />
-                    <span>9. Browser Favicon</span>
+                    <span>10. Browser Favicon</span>
                   </span>
                   <span className="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Synced</span>
                 </div>
@@ -624,39 +641,22 @@ export const LogoUploadManager: React.FC = () => {
                   <div className="w-6 h-6 rounded-md bg-slate-100 p-0.5 flex items-center justify-center shrink-0 border border-slate-200">
                     <Logo variant="icon" size="sm" />
                   </div>
-                  <span className="text-xs font-bold text-slate-800 truncate">GolpoX - Premium Storytelling...</span>
+                  <span className="text-xs font-bold text-slate-800 truncate">GolpoX - Master Favicon</span>
                 </div>
                 <p className="text-[10px] text-slate-500 font-mono">&lt;link rel="icon"&gt;</p>
               </div>
 
-              {/* 10. App Icon Placeholder */}
-              <div className="border border-slate-200 rounded-2xl p-4 bg-slate-50/50 space-y-2">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                  <span className="flex items-center space-x-1.5">
-                    <Smartphone className="w-3.5 h-3.5 text-purple-600" />
-                    <span>10. App Icon Placeholder</span>
-                  </span>
-                  <span className="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Synced</span>
-                </div>
-                <div className="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-center">
-                  <div className="w-10 h-10 rounded-xl overflow-hidden shadow-xs flex items-center justify-center bg-purple-50">
-                    <Logo variant="icon" size="sm" />
-                  </div>
-                </div>
-                <p className="text-[10px] text-slate-500 font-mono">&lt;link rel="apple-touch-icon"&gt;</p>
-              </div>
-
-              {/* 11. SEO Logo Metadata */}
+              {/* 11. SEO Logo */}
               <div className="border border-slate-200 rounded-2xl p-4 bg-slate-50/50 space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold text-slate-700">
                   <span className="flex items-center space-x-1.5">
                     <FileCode className="w-3.5 h-3.5 text-purple-600" />
-                    <span>11. SEO Logo Metadata</span>
+                    <span>11. SEO Logo</span>
                   </span>
                   <span className="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Synced</span>
                 </div>
                 <div className="bg-white p-2.5 rounded-xl border border-slate-200 text-[11px] font-mono text-slate-700 truncate">
-                  schema.org/Organization &lt;meta name="logo"&gt;
+                  schema.org &lt;meta name="logo"&gt;
                 </div>
                 <p className="text-[10px] text-slate-500 font-mono">Search engine crawler metadata</p>
               </div>

@@ -385,6 +385,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return;
     }
 
+    if (role === 'admin') {
+      addToast({ type: 'warning', title: 'Authentication Required', message: 'Please sign in with your administrator credentials.' });
+      return;
+    }
+
     const matchedUser = users.find(u => u.role === role);
     if (matchedUser) {
       setCurrentUser(matchedUser);
@@ -392,23 +397,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addToast({ 
         type: 'success', 
         title: `Switched to ${role.toUpperCase()}`, 
-        message: `Logged in as ${matchedUser.name} (${matchedUser.email})` 
+        message: `Logged in as ${matchedUser.name}` 
       });
     } else {
       // Create new user for this role
       const newUser: User = {
         id: `user-${role}-${Date.now()}`,
-        name: role === 'admin' ? 'Administrator' : role === 'author' ? 'Author Writer' : 'Reader Friend',
-        nameBn: role === 'admin' ? 'অ্যাডমিনিস্ট্রেটর' : role === 'author' ? 'লেখক বন্ধু' : 'পাঠক বন্ধু',
-        username: `${role}_user`,
-        email: `${role}@golpox.local`,
+        name: role === 'author' ? 'Author Writer' : 'Reader Member',
+        nameBn: role === 'author' ? 'লেখক বন্ধু' : 'পাঠক বন্ধু',
+        username: `${role}_${Date.now().toString().slice(-4)}`,
+        email: `${role}${Date.now().toString().slice(-4)}@golpox.app`,
         avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
         role,
-        bio: `GolpoX ${role} member.`,
-        followersCount: 120,
-        followingCount: 15,
-        storiesCount: role === 'author' ? 1 : 0,
-        isVerified: role === 'admin' || role === 'author',
+        bio: `GolpoX literary platform member.`,
+        followersCount: 0,
+        followingCount: 0,
+        storiesCount: 0,
+        isVerified: false,
         joinedDate: 'Today',
         lastLogin: 'Now',
         status: 'active',

@@ -211,7 +211,7 @@ export type ActivePage =
 
 export interface LogoBranding {
   id: 'GOLPOX_MAIN_LOGO';
-  storagePath: 'assets/branding/golpox-main-logo';
+  storagePath: 'public/logos/golpox-logo.png' | string;
   url: string;
   fileName: string;
   fileType: string;

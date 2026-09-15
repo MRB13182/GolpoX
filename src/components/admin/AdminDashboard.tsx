@@ -22,6 +22,7 @@ import { useApp } from '../../context/AppContext';
 import { Story } from '../../types';
 import { Logo } from '../common/Logo';
 import { LogoUploadManager } from './LogoUploadManager';
+import { BRAND_LOGO } from '../../config/branding';
 
 export const AdminDashboard: React.FC = () => {
   const { 
@@ -262,9 +263,9 @@ export const AdminDashboard: React.FC = () => {
             }`}
           >
             <Palette className="w-4 h-4" />
-            <span>Branding (Main Logo)</span>
+            <span>Website Settings</span>
             <span className="text-[10px] bg-purple-100 text-purple-800 font-extrabold px-2 py-0.5 rounded-full">
-              Single Source
+              Branding
             </span>
           </button>
         </div>

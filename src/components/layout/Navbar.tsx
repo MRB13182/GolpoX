@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { Logo } from '../common/Logo';
+import { BRAND_LOGO } from '../../config/branding';
 
 export const Navbar: React.FC = () => {
   const { 

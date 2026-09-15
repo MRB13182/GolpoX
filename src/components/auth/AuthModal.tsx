@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Mail, Lock, User as UserIcon, Feather, Shield, ArrowRight } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { Logo } from '../common/Logo';
+import { BRAND_LOGO } from '../../config/branding';
 
 export const AuthModal: React.FC = () => {
   const { 
